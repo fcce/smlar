@@ -97,7 +97,7 @@ smlararrayconsistent(PG_FUNCTION_ARGS)
 						{
 							double	weight = 0.0, /* exact weight of union */
 									saSum = 0.0,  /* exact length of query */
-									siSum = 0.0;  /* lower limit of length of indexed value */ 
+									siSum = 0.0;  /* lower limit of length of indexed value */
 
 							if ( getTFMethod() != TF_CONST )
 								elog(ERROR,"GIN supports only smlar.tf_method = \"const\"" );
@@ -107,7 +107,7 @@ smlararrayconsistent(PG_FUNCTION_ARGS)
 							for(i=0; i<sa->nelems; i++)
 							{
 								/*
-								 * With smlar.tf_method = "const"   sa->df[i] is 
+								 * With smlar.tf_method = "const"   sa->df[i] is
 								 * equal to its idf, so lookup of StatElem is not needed
 								 */
 								if ( check[i] )

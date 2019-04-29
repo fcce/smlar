@@ -55,7 +55,7 @@ getDefaultOpclass(Oid amoid, Oid typid)
 		if ( opclass->opcintype == typid && opclass->opcdefault )
 		{
 			if ( OidIsValid(opclassOid) )
-				elog(ERROR, "Ambiguous opclass for type %u (access method %u)", typid, amoid); 
+				elog(ERROR, "Ambiguous opclass for type %u (access method %u)", typid, amoid);
 			opclassOid = HeapTupleGetOid(tuple);
 		}
 	}
@@ -93,7 +93,7 @@ getAMProc(Oid amoid, Oid typid)
 		 */
 		catlist = SearchSysCacheList(CASTSOURCETARGET, 1,
 										ObjectIdGetDatum(typid),
-										0, 0, 0);
+										0, 0);
 
 		for (i = 0; i < catlist->n_members; i++)
 		{
@@ -192,7 +192,7 @@ fillProcs(Oid typid)
 
 		if (tupdesc->natts != 2)
 			elog(ERROR,"Composite type has wrong number of fields");
-		if (tupdesc->attrs[1]->atttypid != FLOAT4OID)
+		if (TupleDescAttr(tupdesc, 1)->atttypid != FLOAT4OID)
 			elog(ERROR,"Second field of composite type is not float4");
 
 		oldcontext = MemoryContextSwitchTo(TopMemoryContext);
@@ -201,8 +201,9 @@ fillProcs(Oid typid)
 
 		ReleaseTupleDesc(tupdesc);
 
-		info->cmpFuncOid = getAMProc(BTREE_AM_OID, info->tupDesc->attrs[0]->atttypid);
-		info->hashFuncOid = getAMProc(HASH_AM_OID, info->tupDesc->attrs[0]->atttypid);
+		// info->cmpFuncOid = getAMProc(BTREE_AM_OID, info->tupDesc->attrs[0]->atttypid);
+		info->cmpFuncOid = getAMProc(BTREE_AM_OID, TupleDescAttr(info->tupDesc, 0)->atttypid);
+		info->hashFuncOid = getAMProc(HASH_AM_OID, TupleDescAttr(info->tupDesc, 0)->atttypid);
 	}
 	else
 	{
@@ -292,7 +293,7 @@ findProcs(Oid typid)
 		}
 
 		/* not found */
-	} 
+	}
 
 	info = fillProcs(typid);
 	if ( nCacheProcs == 0 )
@@ -330,7 +331,7 @@ findProcs(Oid typid)
 /*
  * WARNING. Array2SimpleArray* doesn't copy Datum!
  */
-SimpleArray * 
+SimpleArray *
 Array2SimpleArray(ProcTypeInfo info, ArrayType *a)
 {
 	SimpleArray	*s = palloc(sizeof(SimpleArray));
@@ -431,7 +432,7 @@ cmpArrayElemArg(const void *a, const void *b, void *arg)
 }
 
 /*
- * Uniquefy array and calculate TF. Although 
+ * Uniquefy array and calculate TF. Although
  * result doesn't depend on normalization, we
  * normalize TF by length array to have possiblity
  * to limit estimation for index support.
@@ -478,7 +479,7 @@ Array2SimpleArrayU(ProcTypeInfo info, ArrayType *a, void *cache)
 				if ( cmp != 0 )
 				{
 					*(++dr) = *tmp++;
-					if ( cache ) 
+					if ( cache )
 						s->df[ dr - data ] = 1.0;
 				}
 				else
@@ -929,7 +930,7 @@ array_unique(PG_FUNCTION_ARGS)
 
 	sa = Array2SimpleArrayU(NULL, a, NULL);
 
-	res = construct_array(	sa->elems, 
+	res = construct_array(	sa->elems,
 							sa->nelems,
 							sa->info->typid,
 							sa->info->typlen,
